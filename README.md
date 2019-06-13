@@ -28,7 +28,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection     | DELETE | Remove all documents        |
 | /:collection/:id | GET    | Retrieve a single document  |
 | /:collection/:id | POST   | Method Not Allowed          |
-| /:collection/:id | PUT    | Create or update a document |
+| /:collection/:id | PUT    | Update a document           |
 | /:collection/:id | PATCH  | In Version 1.2              |
 | /:collection/:id | DELETE | Remove a single document    |
 | Cascade post     | POST   | In Version 1.0              |
