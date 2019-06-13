@@ -1,6 +1,7 @@
 # lucid-restful
-Node.js package to create an Adonis Middleware for Lucid ORM, RESTful API
+Adonis Middleware package to create RESTful API for Lucid ORM.
 
+Basic Usage:
 ```
 //start/routes.js
 ...
@@ -82,10 +83,79 @@ Result
 { count: 2 }
 ```
 
+## Configuration
 
+### Fillable Properties
+
+The fillable property specifies which attributes should be mass-assignable. 
+This can be set at the model class.
+
+```
+class Post extends Model {
+  ...
+}
+Post.fillable = ['title', 'body']
+
+```
+
+### Midleware Properties
+
+| Route         | Type   | Default    | Notes                |
+| ------------- | ------ | --------------------------------- |
+| modelfolder   | String | App/Models | Change Models Folder |
+
+
+
+## Complete example
+
+start/routes.js
+```
+Route.group(() => {
+  Route.resource('/config/:collection/:id*', 'RestfulController')
+    .middleware(['lucidrestful:modelfolder=App/Models/Config/'])
+
+  Route.resource('/:collection/:id*', 'RestfulController')
+    .middleware(['lucidrestful'])
+
+}).prefix('/api/v1')
+```
+
+App/Models/Post.js
+```
+class Post extends Model {
+  ...
+  comments () {
+    return this.hasMany('App/Models/Comment')
+  }
+}
+Post.fillable = ['title', 'body']
+
+```
+
+App/Models/Comment.js
+```
+class Comment extends Model {
+  ...
+  post () {
+    ...
+    return this.belongsTo('App/Models/Post')
+  }
+}
+Post.fillable = ['title', 'body']
+
+```
+
+App/Models/Config/Notification.js
+```
+class Notification extends Model {
+    ...
+}
+Notification.fillable = ['user_id', 'type', 'active']
+```
 
 ## Todo
     * Finish build filters for get
+    * Finish fillable values
     * Finish Adonis Validator call
     * Finish rest patch
     * Finish cascaded post & put
