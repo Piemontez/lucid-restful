@@ -1,0 +1,24 @@
+{
+  "name": "lucid-restful",
+  "version": "0.1.0",
+  "description": "Adonis Lucid Restful",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Piemontez/lucid-restful.git"
+  },
+  "keywords": [
+    "adonis",
+    "lucid",
+    "restful"
+  ],
+  "author": "Rafael Alexandre Piemontez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Piemontez/lucid-restful/issues"
+  },
+  "homepage": "https://github.com/Piemontez/lucid-restful#readme"
+}
