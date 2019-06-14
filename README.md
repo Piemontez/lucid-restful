@@ -1,5 +1,5 @@
 # lucid-restful
-> Adonis Middleware package to create **RESTful API for Lucid ORM**.
+> Adonis Provider/Middleware package to create **RESTful API for Lucid ORM**.
 
 ## Setup:
 
@@ -10,16 +10,15 @@ adonis install lucid-restful --yarn
 
 1. Edit `/start/app.js`
 ```js
-Route.resource('/restapi/:collection/:id*', 'RestfulController')
-  .middleware(['lucidrestful'])
+const providers = [
+  ...
+  'lucid-restful/providers/LucidRestfulProvider'
+]
 ```
 
-1. Edit `/start/kernel.js`
+1. Edit `/start/routes.js`
 ```js
-const namedMiddleware = {
-  ...
-  lucidrestful: 'App/Middleware/LucidRestful'
-}
+Route.restful('/restapi')
 ```
 
 ## Methods:
@@ -46,7 +45,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 ### Querying documents
 The query API (GET /:collection) uses a robust query syntax that interprets comparision operators (=, !=, >, <, >=, <=) in the query portion of the URL using.
 
-### Get Example
+### Get example
 For example, the URL `https://localhost/restapi/users?name=John&age>=21` would search the User collection for any entries that have a name of "John" and an age greater than or equal to 21.
 
 ```js
@@ -56,7 +55,7 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 ```
 
 
-### Post Example
+### Post example
 Documents are saved using the Lucid ORM save function.
 An example post return the document saved:
 
@@ -72,7 +71,7 @@ Result:
 
 ```
 
-### Count Example
+### Count example
 
 From: `https://localhost/restapi/count?age>=18`
 Result
@@ -95,26 +94,27 @@ Post.fillable = ['title', 'body']
 
 ```
 
-### Midleware Properties
+### Midleware properties
 
 | Route         | Type   | Default    | Notes                |
 | ------------- | ------ | ---------- | -------------------- |
 | modelfolder   | String | App/Models | Change Models Folder |
 
 
+### Controller custom
+
+if you need to customize the data output.
+
+```js
+Route.resource('/restapi/:collection/:id*', '__Controller__').middleware(['lucid-restful'])
+```
 
 ## Complete example
 
 start/routes.js
 ```js
-Route.group(() => {
-  Route.resource('/config/:collection/:id*', 'RestfulController')
-    .middleware(['lucidrestful:modelfolder=App/Models/Config/'])
-
-  Route.resource('/:collection/:id*', 'RestfulController')
-    .middleware(['lucidrestful'])
-
-}).prefix('/restapi')
+Route.restful('/restapi/config', 'modelfolder=App/Models/Config/')
+Route.restful('/restapi')
 ```
 
 App/Models/Post.js
