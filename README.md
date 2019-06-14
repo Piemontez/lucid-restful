@@ -49,7 +49,7 @@ The query API (GET /:collection) uses a robust query syntax that interprets comp
 ### Get Example
 For example, the URL `https://localhost/restapi/users?name=John&age>=21` would search the User collection for any entries that have a name of "John" and an age greater than or equal to 21.
 
-```
+```js
 [
   { id: '1', name: 'John', age: 21 }
 ]
@@ -58,7 +58,6 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 
 ### Post Example
 Documents are saved using the Lucid ORM save function.
-
 An example post return the document saved:
 
 URL: `https://localhost/restapi/users/1`
