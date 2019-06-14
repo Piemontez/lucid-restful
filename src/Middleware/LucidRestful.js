@@ -14,7 +14,17 @@ class LucidRestful {
    * @param {Request} ctx.request
    * @param {Function} next
    */
-  async handle (ctx, next) {
+  async handle (ctx, next, properties) {
+
+    this.props = {
+      modelfolder: 'App/Models/'
+    };
+
+    /* parse properties */
+    (properties||[]).forEach(prop => {
+      const [ l, r ] = prop.split('=');
+      this.props[l] = r||l;
+    })
 
     const { request, params } = ctx;
     const method = request.method();
@@ -71,7 +81,7 @@ class LucidRestful {
     const { collection, id } = params
     const reserved = ['count']
 
-    request.collectionName = inflection.classify(collection)
+    request.collectionName = inflection.camelize(collection)
 
     if (Array.isArray(id)) {
       if (reserved.includes(id[0]))
@@ -84,7 +94,7 @@ class LucidRestful {
   }
 
   getColection(request/*, params*/) {
-    request.collectionModel = use(`App/Models/${request.collectionName}`)
+    request.collectionModel = use(`${this.props.modelfolder}${request.collectionName}`)
   }
 
 
@@ -145,8 +155,33 @@ class LucidRestful {
 
   buildQuery(query, request/*, params*/) {
 
+    this.buildWith(query, request);
+    this.buildInclude(query, request); //Todo: remove após migração
+    this.buildFilters(query, request);
   }
 
+  buildFilters(/*query, request*/) {
+
+  }
+
+
+  buildWith(query, request) {
+    let only = request.only('with');
+    if (only.with)
+      only.with.split(',').forEach(w => {
+        query.with(w)
+      })
+  }
+
+  buildInclude(query, request) {
+    let only = request.only('include');
+    if (only.include)
+      only.include.split(',').forEach(i => {
+        let [Model, w] = i.split(':')
+
+        query.with(w)
+      })
+  }
 }
 
 module.exports = LucidRestful

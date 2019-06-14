@@ -73,10 +73,44 @@ Result:
 
 ### Count example
 
-From: `https://localhost/restapi/count?age>=18`
+URL: `https://localhost/restapi/count?age>=18`
 Result
-```
+```js
 { count: 2 }
+```
+
+## With suporte / Eager Loading
+
+To get a relation to another model using "with", just use the "with" parameter as an examples:
+
+URL: `https://localhost/restapi/comment?with=post`
+Result
+```js
+[{ 
+	id: 1,
+	body: 'lorem ipsum',
+	post_id: 1,
+	post: {
+		id: 1,
+		title: 'Lipsum',
+		body: 'It's awesome'
+	} 
+}]
+```
+
+URL: `https://localhost/restapi/post?with=comments`
+Result
+```js
+[{
+	id: 1,
+	title: 'Lipsum',
+	body: 'It's awesome',
+	comments: [{
+		id: 1,
+		body: 'lorem ipsum',
+		post_id: 1,
+	}]
+}]
 ```
 
 ## Configuration
@@ -101,12 +135,12 @@ Post.fillable = ['title', 'body']
 | modelfolder   | String | App/Models | Change Models Folder |
 
 
-### Controller custom
+### Custom controller
 
 if you need to customize the data output.
 
 ```js
-Route.resource('/restapi/:collection/:id*', '__Controller__').middleware(['lucid-restful'])
+Route.resource('/restapi/:collection/:id*', '_Custom_Controller_').middleware(['lucid-restful'])
 ```
 
 ## Complete example
@@ -152,11 +186,14 @@ Notification.fillable = ['user_id', 'type', 'active']
 
 ## Todo
 
-| Item              | Status           | Version |
-| ----------------- | ---------------- | ------- |
-| Fillable values   | Finished         | 0.1.2   |
-| Populate / With   | In Developed     | 0.1.4   |
-| Build Filters     | Waiting          | 0.1.6   |
-| Adonis Validator  | Waiting          | 0.1.8   |
-| Cascade Save      | Waiting          | 0.1.10  |
-| Build Filters     | Waiting          | 0.1.2   |
+| Item               | Status           | Version |
+| ------------------ | ---------------- | ------- |
+| Fillable values    | Finished         | 0.1.2   |
+| Populate / With    | Finished         | 0.1.4   |
+|                    |                  |         |
+| Change to Provider | In Developed     | 0.1.5   |
+|                    |                  |         |
+| Build Filters      | Waiting          | 0.1.6   |
+| Adonis Validator   | Waiting          | 0.1.8   |
+| Cascade Save       | Waiting          | 0.1.10  |
+| Build Filters      | Waiting          | 0.1.2   |
