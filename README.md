@@ -14,7 +14,7 @@ Route.resource('/restapi/:collection/:id*', 'RestfulController')
   .middleware(['lucidrestful'])
 ```
 
-1. Edit `/start/kernel.js
+1. Edit `/start/kernel.js`
 ```js
 const namedMiddleware = {
   ...
@@ -59,19 +59,12 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 ### Post Example
 Documents are saved using the Lucid ORM save function.
 
-An example post using jQuery and return the document saved:
-```
-$.ajax('https://localhost/restapi/users/1', {
-  method: 'POST',
-  contentType: 'application/json',
-  data: JSON.stringify({
-      name: 'Peter',
-      age: 19
-  }),
-  success: function (user, status, xhr) { console.log(user) },
-  error: function (xhr, status, err) {...}
-})
-\\console log
+An example post return the document saved:
+
+URL: `https://localhost/restapi/users/1`
+Data: `{ name: 'Peter', age: 19 }`
+Result:
+```js
 {
   id: 2,
   name: 'Peter',
@@ -95,7 +88,7 @@ Result
 The fillable property specifies which attributes should be mass-assignable. 
 This can be set at the model class.
 
-```
+```js
 class Post extends Model {
   ...
 }
@@ -114,7 +107,7 @@ Post.fillable = ['title', 'body']
 ## Complete example
 
 start/routes.js
-```
+```js
 Route.group(() => {
   Route.resource('/config/:collection/:id*', 'RestfulController')
     .middleware(['lucidrestful:modelfolder=App/Models/Config/'])
@@ -126,7 +119,7 @@ Route.group(() => {
 ```
 
 App/Models/Post.js
-```
+```js
 class Post extends Model {
   ...
   comments () {
@@ -138,7 +131,7 @@ Post.fillable = ['title', 'body']
 ```
 
 App/Models/Comment.js
-```
+```js
 class Comment extends Model {
   ...
   post () {
@@ -151,7 +144,7 @@ Post.fillable = ['post_id', 'body']
 ```
 
 App/Models/Config/Notification.js
-```
+```js
 class Notification extends Model {
     ...
 }
