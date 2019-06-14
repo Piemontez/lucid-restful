@@ -1,23 +1,28 @@
 # lucid-restful
-Adonis Middleware package to create RESTful API for Lucid ORM.
+> Adonis Middleware package to create **RESTful API for Lucid ORM**.
 
-Basic Usage:
+## Setup:
+
+1. Install required packages
+```bash
+adonis install lucid-restful --yarn
 ```
-//start/routes.js
-...
-Route.resource('/api/v1/:collection/:id*', 'RestfulController')
+
+1. Edit `/start/app.js`
+```js
+Route.resource('/restapi/:collection/:id*', 'RestfulController')
   .middleware(['lucidrestful'])
+```
 
-
-//start/kernel.js
-...
+1. Edit `/start/kernel.js
+```js
 const namedMiddleware = {
   ...
   lucidrestful: 'App/Middleware/LucidRestful'
 }
-
-
 ```
+
+## Methods:
 The middleware is schema-agnostic, allowing any json document to be persisted and retrieved from database.
 
 | Route            | Method | Notes                       |
@@ -30,9 +35,9 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection/:id | POST   | Method Not Allowed          |
 | /:collection/:id | PUT    | Update a document           |
 | /:collection/:id | DELETE | Remove a single document    |
-| ---------------- | ------ | --------------------------- |
+|                  |        |                             |
 | /:collection/count | GET    | Count the collection      |
-| ---------------- | ------ | --------------------------- |
+|                  |        |                             |
 | /:collection     | PATCH  | Method Not Allowed          |
 | /:collection/:id | PATCH  | Undeveloped Method          |
 
@@ -42,7 +47,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 The query API (GET /:collection) uses a robust query syntax that interprets comparision operators (=, !=, >, <, >=, <=) in the query portion of the URL using.
 
 ### Get Example
-For example, the URL `https://localhost/api/v1/users?name=John&age>=21` would search the User collection for any entries that have a name of "John" and an age greater than or equal to 21.
+For example, the URL `https://localhost/restapi/users?name=John&age>=21` would search the User collection for any entries that have a name of "John" and an age greater than or equal to 21.
 
 ```
 [
@@ -56,7 +61,7 @@ Documents are saved using the Lucid ORM save function.
 
 An example post using jQuery and return the document saved:
 ```
-$.ajax('https://localhost/api/v1/users/1', {
+$.ajax('https://localhost/restapi/users/1', {
   method: 'POST',
   contentType: 'application/json',
   data: JSON.stringify({
@@ -77,7 +82,7 @@ $.ajax('https://localhost/api/v1/users/1', {
 
 ### Count Example
 
-From: `https://localhost/api/v1/count?age>=18`
+From: `https://localhost/restapi/count?age>=18`
 Result
 ```
 { count: 2 }
@@ -101,7 +106,7 @@ Post.fillable = ['title', 'body']
 ### Midleware Properties
 
 | Route         | Type   | Default    | Notes                |
-| ------------- | ------ | --------------------------------- |
+| ------------- | ------ | ---------- | -------------------- |
 | modelfolder   | String | App/Models | Change Models Folder |
 
 
@@ -117,7 +122,7 @@ Route.group(() => {
   Route.resource('/:collection/:id*', 'RestfulController')
     .middleware(['lucidrestful'])
 
-}).prefix('/api/v1')
+}).prefix('/restapi')
 ```
 
 App/Models/Post.js
@@ -141,7 +146,7 @@ class Comment extends Model {
     return this.belongsTo('App/Models/Post')
   }
 }
-Post.fillable = ['title', 'body']
+Post.fillable = ['post_id', 'body']
 
 ```
 
