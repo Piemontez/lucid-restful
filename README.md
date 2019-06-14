@@ -25,16 +25,16 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection     | GET    | Search the collection (Filters: under development) |
 | /:collection     | POST   | Create a single document    |
 | /:collection     | PUT    | Method Not Allowed          |
-| /:collection     | PATCH  | Method Not Allowed          |
 | /:collection     | DELETE | Remove all documents        |
 | /:collection/:id | GET    | Retrieve a single document  |
 | /:collection/:id | POST   | Method Not Allowed          |
 | /:collection/:id | PUT    | Update a document           |
-| /:collection/:id | PATCH  | In Version 1.2              |
 | /:collection/:id | DELETE | Remove a single document    |
-| Cascade post     | POST   | In Version 1.0              |
-| Cascade put      | POST   | In Version 1.1              |
-| /:collection/count | GET    | Count the collection        |
+| ---------------- | ------ | --------------------------- |
+| /:collection/count | GET    | Count the collection      |
+| ---------------- | ------ | --------------------------- |
+| /:collection     | PATCH  | Method Not Allowed          |
+| /:collection/:id | PATCH  | Undeveloped Method          |
 
 ## API
 
@@ -154,10 +154,12 @@ Notification.fillable = ['user_id', 'type', 'active']
 ```
 
 ## Todo
-    * Finish build filters for get
-    * Finish fillable values
-    * Finish Adonis Validator call
-    * Finish rest patch
-    * Finish cascaded post & put
-    * Finish populate
 
+| Item              | Status           | Version |
+| ----------------- | ---------------- | ------- |
+| Fillable values   | Finished         | 0.1.2   |
+| Populate / With   | In Developed     | 0.1.4   |
+| Build Filters     | Waiting          | 0.1.6   |
+| Adonis Validator  | Waiting          | 0.1.8   |
+| Cascade Save      | Waiting          | 0.1.10  |
+| Build Filters     | Waiting          | 0.1.2   |
