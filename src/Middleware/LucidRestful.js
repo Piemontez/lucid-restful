@@ -165,6 +165,8 @@ class LucidRestful {
     this.buildWith(query, request);
     this.buildInclude(query, request); //Todo: remove após migração
     this.buildFilters(query, request);
+    this.buildOrder(query, request);
+    this.buildPager(query, request);
   }
 
   buildFilters(query, request) {
@@ -194,6 +196,20 @@ class LucidRestful {
           default:
         }
     }
+  }
+
+  buildOrder(query, request) {
+    let only = request.only(['order','sort']);
+    if (only.order || only.sort)
+      (only.order||only.sort).split(',').forEach(w => {
+        query.orderBy(w)
+      })
+  }
+
+  buildPager(query, request) {
+    let only = request.only(['page','count', 'limit'])
+    if (only.page)
+      query.forPage(parseInt(only.page, 10)||1, parseInt(only.count||only.limit, 10)||20)
   }
 
 

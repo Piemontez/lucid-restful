@@ -54,6 +54,9 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 ]
 ```
 
+### Pager e Sort
+URL `https://localhost/restapi/users?sort=name&page=1&limit=10`
+
 
 ### Post example
 Documents are saved using the Lucid ORM save function.
@@ -186,14 +189,14 @@ Notification.fillable = ['user_id', 'type', 'active']
 
 ## Todo
 
-| Item               | Status           | Version |
-| ------------------ | ---------------- | ------- |
-| Fillable values    | Finished         | 0.1.2   |
-| Populate / With    | Finished         | 0.1.4   |
-| Change to Provider | Finished         | 0.1.5   |
-| Build Filters      | Finished         | 0.1.6   |
-| Sort               | In Developed     | 0.1.7   |
-| Pager              | In Developed     | 0.1.7   |
-| Cascade Save       | Waiting          | 0.1.10  |
-| Adonis Validator   | Waiting          | 0.1.8   |
+| Item               | Status           | Version   |
+| ------------------ | ---------------- | --------- |
+| Fillable values    | Finished         | 0.1.2     |
+| Populate / With    | Finished         | 0.1.4     |
+| Change to Provider | Finished         | 0.1.5     |
+| Build Filters      | Finished         | 0.1.6     |
+| Sort               | In Developed     | 0.1.[7-9] |
+| Pager              | In Developed     | 0.1.[7-9] |
+| Cascade Save       | In Developed     | 0.1.[7-9] |
+| Adonis Validator   | Waiting          | 0.2       |
 
