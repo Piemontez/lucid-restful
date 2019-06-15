@@ -1,6 +1,6 @@
 {
   "name": "lucid-restful",
-  "version": "0.1.3",
+  "version": "0.1.6",
   "description": "Adonis Lucid Restful",
   "main": "index.js",
   "scripts": {
@@ -20,5 +20,6 @@
   "bugs": {
     "url": "https://github.com/Piemontez/lucid-restful/issues"
   },
-  "homepage": "https://github.com/Piemontez/lucid-restful#readme"
+  "homepage": "https://github.com/Piemontez/lucid-restful#readme",
+  "dependencies": {}
 }

@@ -46,7 +46,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 The query API (GET /:collection) uses a robust query syntax that interprets comparision operators (=, !=, >, <, >=, <=) in the query portion of the URL using.
 
 ### Get example
-For example, the URL `https://localhost/restapi/users?name=John&age>=21` would search the User collection for any entries that have a name of "John" and an age greater than or equal to 21.
+For example, the URL `https://localhost/restapi/users?name=John&age>=21` would search the User collection for any entries that have a **name of "John"** and an **age greater than or equal to 21**.
 
 ```js
 [
@@ -190,10 +190,10 @@ Notification.fillable = ['user_id', 'type', 'active']
 | ------------------ | ---------------- | ------- |
 | Fillable values    | Finished         | 0.1.2   |
 | Populate / With    | Finished         | 0.1.4   |
-|                    |                  |         |
-| Change to Provider | In Developed     | 0.1.5   |
-|                    |                  |         |
-| Build Filters      | Waiting          | 0.1.6   |
-| Adonis Validator   | Waiting          | 0.1.8   |
+| Change to Provider | Finished         | 0.1.5   |
+| Build Filters      | Finished         | 0.1.6   |
+| Sort               | In Developed     | 0.1.7   |
+| Pager              | In Developed     | 0.1.7   |
 | Cascade Save       | Waiting          | 0.1.10  |
-| Build Filters      | Waiting          | 0.1.2   |
+| Adonis Validator   | Waiting          | 0.1.8   |
+
