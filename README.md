@@ -54,8 +54,8 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 ]
 ```
 
-### Pager e Sort
-URL `https://localhost/restapi/users?sort=name&page=1&limit=10`
+### Pager and Order by
+URL `https://localhost/restapi/users?order=name&page=1&limit=10`
 
 
 ### Post example
