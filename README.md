@@ -96,7 +96,7 @@ Result
 	post: {
 		id: 1,
 		title: 'Lipsum',
-		body: 'It's awesome'
+		body: 'It`s awesome'
 	} 
 }]
 ```
@@ -107,7 +107,7 @@ Result
 [{
 	id: 1,
 	title: 'Lipsum',
-	body: 'It's awesome',
+	body: 'It`s awesome',
 	comments: [{
 		id: 1,
 		body: 'lorem ipsum',
@@ -195,8 +195,8 @@ Notification.fillable = ['user_id', 'type', 'active']
 | Populate / With    | Finished         | 0.1.4     |
 | Change to Provider | Finished         | 0.1.5     |
 | Build Filters      | Finished         | 0.1.6     |
-| Sort               | In Developed     | 0.1.[7-9] |
-| Pager              | In Developed     | 0.1.[7-9] |
-| Cascade Save       | In Developed     | 0.1.[7-9] |
+| Sort               | Finished         | 0.1.7     |
+| Pager              | Finished         | 0.1.8     |
+| Cascade Save       | In Developed     | 0.1.15    |
 | Adonis Validator   | Waiting          | 0.2       |
 

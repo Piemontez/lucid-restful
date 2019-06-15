@@ -4,6 +4,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const inflection = require('inflection');
+const ModelHooks = use('Lucid/ModelHooked')
 
 class LucidRestfullException extends Error {
   constructor(name, message) {
@@ -13,7 +14,8 @@ class LucidRestfullException extends Error {
   }
 }
 
-const except = ['with', 'include', 'page', 'count', 'sort']
+const except = ['with', 'include', 'page', 'limit', 'count', 'sort', 'order']
+//Todo remover: include, count, sort
 
 class LucidRestful {
   /**
@@ -38,6 +40,7 @@ class LucidRestful {
 
     this.parseParameters(request, params)
     this.getColection(request, params)
+    this.addHooks(request, params)
 
     //console.log(request.collectionName, method.toLocaleLowerCase(), request.idMatch, request.lucidMethod)
 
@@ -104,6 +107,24 @@ class LucidRestful {
     request.collectionModel = use(`${this.props.modelfolder}${request.collectionName}`)
   }
 
+  addHooks(request/*, params*/) {
+    if (request.collectionName
+      && request.collectionModel
+      && !ModelHooks.hasOwnProperty(request.collectionName))
+    {
+      ModelHooks[request.collectionName] = request.collectionName;
+
+      request.collectionModel.addHook('beforeUpdate', function (modelInstance) {
+        console.log('beforeUpdate');
+      })
+      request.collectionModel.addHook('beforeSave', function (modelInstance) {
+        console.log('beforeSave');
+      })
+      request.collectionModel.addHook('afterSave', function (modelInstance) {
+        console.log('afterSave');
+      })
+    }
+  }
 
   async findAll(request, params) {
     let query = request.collectionModel.query()
