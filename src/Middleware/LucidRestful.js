@@ -5,6 +5,7 @@
 
 const inflection = require('inflection');
 const ModelHooks = use('Lucid/ModelHooked')
+const Database = use('Database')
 
 class LucidRestfullException extends Error {
   constructor(name, message) {
@@ -14,15 +15,10 @@ class LucidRestfullException extends Error {
   }
 }
 
-const except = ['with', 'include', 'page', 'limit', 'count', 'sort', 'order']
 //Todo remover: include, count, sort
+const except = ['with', 'include', 'page', 'limit', 'count', 'sort', 'order']
 
 class LucidRestful {
-  /**
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Function} next
-   */
   async handle (ctx, next, properties) {
 
     this.props = {
@@ -41,8 +37,6 @@ class LucidRestful {
     this.parseParameters(request, params)
     this.getColection(request, params)
     this.addHooks(request, params)
-
-    //console.log(request.collectionName, method.toLocaleLowerCase(), request.idMatch, request.lucidMethod)
 
     if (request.lucidMethod) {
       switch(request.lucidMethod) {
@@ -112,17 +106,7 @@ class LucidRestful {
       && request.collectionModel
       && !ModelHooks.hasOwnProperty(request.collectionName))
     {
-      ModelHooks[request.collectionName] = request.collectionName;
-
-      request.collectionModel.addHook('beforeUpdate', function (modelInstance) {
-        console.log('beforeUpdate');
-      })
-      request.collectionModel.addHook('beforeSave', function (modelInstance) {
-        console.log('beforeSave');
-      })
-      request.collectionModel.addHook('afterSave', function (modelInstance) {
-        console.log('afterSave');
-      })
+      new CascadeFill(request.collectionModel, request.collectionName)
     }
   }
 
@@ -137,7 +121,11 @@ class LucidRestful {
   async retriveByPk(request, params) {
     let query = request.collectionModel;
 
+    //this.buildQuery(query, request, params)
+
     request.queryResult = await query.findOrFail(request.idMatch)
+
+    //request.queryResult = request.collectionModel.constructor.primaryKey();
   }
 
   async new(request/*, params*/) {
@@ -147,30 +135,37 @@ class LucidRestful {
       model.fill(request.only(request.collectionModel.fillable))
     else
       model.fill(request.body)
-    await model.save()
 
-    request.queryResult = model.toJSON()
-
+    const trx = await Database.beginTransaction()
+      await model.save(trx)
+      request.queryResult = model.toJSON()
+    trx.commit()
   }
 
   async delete(request/*, params*/) {
     const model = await request.collectionModel.findOrFail(request.idMatch)
 
-    request.queryResult = model
-
-    await model.delete()
+    const trx = await Database.beginTransaction()
+      await model.delete(trx)
+      request.queryResult = model.toJSON()
+    trx.commit()
   }
 
   async update(request/*, params*/) {
     const model = await request.collectionModel.findOrFail(request.idMatch)
 
     if (request.collectionModel.fillable)
-      model.merge(request.only(request.collectionModel.fillable))
+      model.merge(request.only(
+        request.collectionModel.fillable
+          .concat(request.collectionModel.cascadeFillable)
+      ))
     else
       model.merge(request.body)
-    await model.save()
 
-    request.queryResult = model
+    const trx = await Database.beginTransaction()
+      await model.save(trx)
+      request.queryResult = model.toJSON()
+    trx.commit()
   }
 
   async count(request, params) {
@@ -181,8 +176,7 @@ class LucidRestful {
     request.queryResult = await query.count().first()
   }
 
-  buildQuery(query, request/*, params*/) {
-
+  buildQuery(query, request) {
     this.buildWith(query, request);
     this.buildInclude(query, request); //Todo: remove após migração
     this.buildFilters(query, request);
@@ -252,6 +246,54 @@ class LucidRestful {
       })
   }
 }
+
+class CascadeFill {
+  constructor(collectionClass, collectionName) {
+    ModelHooks[collectionName] = this;
+
+    this.addHook(collectionClass)
+  }
+
+  async addHook(model) {
+    /* remove to save cascade attributes */
+    model.addHook('beforeSave', (modelInstance) => {
+      if (!modelInstance.$hidden) modelInstance.$hidden = {}
+      modelInstance.$hidden.$rest = {};
+
+      (model.cascadeFillable||[]).forEach(fill => {
+        modelInstance.$hidden.$rest[fill] = modelInstance.$attributes[fill]
+        modelInstance[fill] = undefined
+      })
+    })
+
+    /* save cascade attributes */
+    model.addHook('afterSave', async (modelInstance) => {
+      (model.cascadeFillable||[]).forEach(fill => {
+        const attributes = modelInstance.$hidden.$rest[fill];
+        if (!attributes || !attributes.length) return;
+        const relationship = modelInstance.canais();
+
+        if (relationship.constructor.name === "BelongsToMany")
+          this.fillBelongsToMany(relationship, attributes)
+
+        if (relationship.constructor.name === "HasMany")
+          this.fillHasMany(relationship, attributes)
+      })
+
+      delete modelInstance.$hidden.$rest
+    })
+  }
+
+  fillBelongsToMany(relationship, attributes) {
+    relationship.attach(attributes.map(x => x.id||x))
+  }
+
+  async fillHasMany(relationship, attributes) {
+
+  }
+}
+
+
 
 function paramsToQuery(key, value) {
   const join = (value == '') ? key : key.concat('=', value)
@@ -336,6 +378,7 @@ function typedValue(value) {
 
   return value;
 }
+
 
 let iso8601 = /^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?(T([01][0-9]|2[0-3]):[0-5]\d(:[0-5]\d(\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?$/
 
