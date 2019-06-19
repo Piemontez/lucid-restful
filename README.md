@@ -56,6 +56,10 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 
 ### Pager and Order by
 
+Paginate
+
+URL `https://localhost/restapi/users?page=1&limit=10`
+
 Ascending
 
 URL `https://localhost/restapi/users?order=name&page=1&limit=10`
@@ -82,7 +86,6 @@ Result:
 
 ### PUT example
 Documents are saved using the Lucid ORM save function.
-An example post return the document saved:
 
 URL: `https://localhost/restapi/users/2`
 Data: `{ age: 17 }`
