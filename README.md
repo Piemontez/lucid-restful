@@ -45,7 +45,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 ### Querying documents
 The query API (GET /:collection) uses a robust query syntax that interprets comparision operators (=, !=, >, <, >=, <=) in the query portion of the URL using.
 
-### Get example
+### GET example
 For example, the URL `https://localhost/restapi/users?name=John&age>=21` would search the User collection for any entries that have a **name of "John"** and an **age greater than or equal to 21**.
 
 ```js
@@ -55,14 +55,20 @@ For example, the URL `https://localhost/restapi/users?name=John&age>=21` would s
 ```
 
 ### Pager and Order by
+
+Ascending
+
 URL `https://localhost/restapi/users?order=name&page=1&limit=10`
 
+Descending
 
-### Post example
+URL `https://localhost/restapi/users?order=-name`
+
+### POST example
 Documents are saved using the Lucid ORM save function.
 An example post return the document saved:
 
-URL: `https://localhost/restapi/users/1`
+URL: `https://localhost/restapi/users`
 Data: `{ name: 'Peter', age: 19 }`
 Result:
 ```js
@@ -70,6 +76,22 @@ Result:
   id: 2,
   name: 'Peter',
   age: 19
+}
+
+```
+
+### PUT example
+Documents are saved using the Lucid ORM save function.
+An example post return the document saved:
+
+URL: `https://localhost/restapi/users/2`
+Data: `{ age: 17 }`
+Result:
+```js
+{
+  id: 2,
+  name: 'Peter',
+  age: 17
 }
 
 ```
@@ -82,16 +104,16 @@ Result
 { count: 2 }
 ```
 
-## With suporte / Eager Loading
+## With suporte / Eager loading
 
 To get a relation to another model using "with", just use the "with" parameter as an examples:
 
 URL: `https://localhost/restapi/comment?with=post`
-Result
+Result:
 ```js
 [{ 
 	id: 1,
-	body: 'lorem ipsum',
+	body: 'Lorem ipsum',
 	post_id: 1,
 	post: {
 		id: 1,
@@ -102,7 +124,7 @@ Result
 ```
 
 URL: `https://localhost/restapi/post?with=comments`
-Result
+Result:
 ```js
 [{
 	id: 1,
@@ -110,15 +132,13 @@ Result
 	body: 'It`s awesome',
 	comments: [{
 		id: 1,
-		body: 'lorem ipsum',
+		body: 'Lorem ipsum',
 		post_id: 1,
 	}]
 }]
 ```
 
-## Configuration
-
-### Fillable Properties
+## Fillable Properties
 
 The fillable property specifies which attributes should be mass-assignable. 
 This can be set at the model class.
@@ -131,12 +151,66 @@ Post.fillable = ['title', 'body']
 
 ```
 
+## Cascade Save
+
+```js
+class Post extends Model {
+  ...
+  comments () {
+    return this.hasMany('App/Models/Comment')
+  }
+}
+Post.cascadeFillable = ['comments']
+```
+
+URL: `https://localhost/restapi/post`
+Data: `{ title: 'Lipsum', comments: [{ body: 'Lorem ipsum' }] }`
+Result:
+```js
+[{
+	id: 2,
+	title: 'Lipsum',
+	comments: [{
+		id: 3,
+		body: 'Lorem ipsum',
+		post_id: 2,
+	}]
+}]
+```
+
+## Aggregate function suporte
+
+```js
+class Post extends Model {
+  ...
+  commentsCount () {
+    return this.belongsTo('App/Models/Comment')
+      .groupBy('post_id')
+      .select('post_id')
+      .select(Database.raw('count(id)'))
+  }  
+}
+```
+
+URL: `https://localhost/restapi/post?with=commentsCount`
+Result:
+```js
+[{
+	id: 2, title: 'Lipsum',
+	commentsCount: { post_id: 2, count: 1 }
+},{
+	id: 3, title: 'Lorem',
+	commentsCount: { post_id: 3, count: 13 }
+}]
+```
+
+## Configuration
+
 ### Midleware properties
 
 | Route         | Type   | Default    | Notes                |
 | ------------- | ------ | ---------- | -------------------- |
 | modelfolder   | String | App/Models | Change Models Folder |
-
 
 ### Custom controller
 
@@ -146,57 +220,17 @@ if you need to customize the data output.
 Route.resource('/restapi/:collection/:id*', '_Custom_Controller_').middleware(['lucid-restful'])
 ```
 
-## Complete example
-
-start/routes.js
-```js
-Route.restful('/restapi/config', 'modelfolder=App/Models/Config/')
-Route.restful('/restapi')
-```
-
-App/Models/Post.js
-```js
-class Post extends Model {
-  ...
-  comments () {
-    return this.hasMany('App/Models/Comment')
-  }
-}
-Post.fillable = ['title', 'body']
-
-```
-
-App/Models/Comment.js
-```js
-class Comment extends Model {
-  ...
-  post () {
-    ...
-    return this.belongsTo('App/Models/Post')
-  }
-}
-Post.fillable = ['post_id', 'body']
-
-```
-
-App/Models/Config/Notification.js
-```js
-class Notification extends Model {
-    ...
-}
-Notification.fillable = ['user_id', 'type', 'active']
-```
-
 ## Todo
 
-| Item               | Status           | Version   |
-| ------------------ | ---------------- | --------- |
-| Fillable values    | Finished         | 0.1.2     |
-| Populate / With    | Finished         | 0.1.4     |
-| Change to Provider | Finished         | 0.1.5     |
-| Build Filters      | Finished         | 0.1.6     |
-| Sort               | Finished         | 0.1.7     |
-| Pager              | Finished         | 0.1.8     |
-| Cascade Save       | In Developed     | 0.1.15    |
-| Adonis Validator   | Waiting          | 0.2       |
+| Item                | Status           | Version   |
+| ------------------- | ---------------- | --------- |
+| Fillable values     | Finished         | 0.1.2     |
+| Populate / With     | Finished         | 0.1.4     |
+| Change to Provider  | Finished         | 0.1.5     |
+| Build Filters       | Finished         | 0.1.6     |
+| Sort                | Finished         | 0.1.7     |
+| Pager               | Finished         | 0.1.8     |
+| Cascade Save        | In Developed     | 0.1.15    |
+| Adonis Validator    | In Developed     | 0.2       |
+| Transaction suporte | Waiting          | 0.3       |
 

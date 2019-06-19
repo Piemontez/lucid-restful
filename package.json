@@ -1,6 +1,6 @@
 {
   "name": "lucid-restful",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Adonis Lucid Restful",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
   "homepage": "https://github.com/Piemontez/lucid-restful#readme",
   "dependencies": {
     "@adonisjs/fold": "4.x.x",
-    "inflection": "1.x.x"
+    "inflection": "1.x.x",
+    "lodash": "^4.17.11"
   }
 }

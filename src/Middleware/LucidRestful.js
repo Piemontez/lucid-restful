@@ -3,6 +3,7 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
+const _ = require('lodash')
 const inflection = require('inflection');
 const ModelHooks = use('Lucid/ModelHooked')
 const Database = use('Database')
@@ -21,9 +22,7 @@ const except = ['with', 'include', 'page', 'limit', 'count', 'sort', 'order']
 class LucidRestful {
   async handle (ctx, next, properties) {
 
-    this.props = {
-      modelfolder: 'App/Models/'
-    };
+    this.props = { /*modelfolder*/ };
 
     /* parse properties */
     (properties||[]).forEach(prop => {
@@ -36,7 +35,6 @@ class LucidRestful {
 
     this.parseParameters(request, params)
     this.getColection(request, params)
-    this.addHooks(request, params)
 
     if (request.lucidMethod) {
       switch(request.lucidMethod) {
@@ -98,16 +96,8 @@ class LucidRestful {
   }
 
   getColection(request/*, params*/) {
-    request.collectionModel = use(`${this.props.modelfolder}${request.collectionName}`)
-  }
+    request.collectionModel = CascadeFill.getModel(request.collectionName, this.props)
 
-  addHooks(request/*, params*/) {
-    if (request.collectionName
-      && request.collectionModel
-      && !ModelHooks.hasOwnProperty(request.collectionName))
-    {
-      new CascadeFill(request.collectionModel, request.collectionName)
-    }
   }
 
   async findAll(request, params) {
@@ -119,20 +109,23 @@ class LucidRestful {
   }
 
   async retriveByPk(request, params) {
-    let query = request.collectionModel;
+    let query = request.collectionModel.query();
 
-    //this.buildQuery(query, request, params)
+    this.buildQuery(query, request, params)
 
-    request.queryResult = await query.findOrFail(request.idMatch)
+    query.where(request.collectionModel.primaryKey, request.idMatch)
 
-    //request.queryResult = request.collectionModel.constructor.primaryKey();
+    request.queryResult  = await query.first()
   }
 
   async new(request/*, params*/) {
     const model = new request.collectionModel;
 
     if (request.collectionModel.fillable)
-      model.fill(request.only(request.collectionModel.fillable))
+      model.fill(request.only(
+        request.collectionModel.fillable
+          .concat(request.collectionModel.cascadeFillable)
+      ))
     else
       model.fill(request.body)
 
@@ -151,7 +144,7 @@ class LucidRestful {
     trx.commit()
   }
 
-  async update(request/*, params*/) {
+  async update(request, params) {
     const model = await request.collectionModel.findOrFail(request.idMatch)
 
     if (request.collectionModel.fillable)
@@ -164,8 +157,14 @@ class LucidRestful {
 
     const trx = await Database.beginTransaction()
       await model.save(trx)
-      request.queryResult = model.toJSON()
     trx.commit()
+
+
+    let query = request.collectionModel.query();
+    this.buildQuery(query, request, params)
+    query.where(request.collectionModel.primaryKey, request.idMatch)
+
+    request.queryResult  = await query.first()
   }
 
   async count(request, params) {
@@ -185,7 +184,11 @@ class LucidRestful {
   }
 
   buildFilters(query, request) {
-    let params = request.except(except);
+    query.Model.$hooks.before.exec('paginate', query, request)
+
+    //let params = request.except(except);
+    let params = _.omit(request.get(), except);
+
     for (var key in params) {
       const where =  paramsToQuery(key, params[key])
 
@@ -215,10 +218,18 @@ class LucidRestful {
 
   buildOrder(query, request) {
     let only = request.only(['order','sort']);
-    if (only.order || only.sort)
-      (only.order||only.sort).split(',').forEach(w => {
-        query.orderBy(w)
-      })
+    let order = only.order || only.sort;
+    if (order) {
+      let direction = 'asc';
+      if (order[0] === '-') {
+        order = order.substr(1);
+        direction = 'desc';
+      }
+        (order).split(',').forEach(w => {
+          query.orderBy(w, direction)
+        })
+
+    }
   }
 
   buildPager(query, request) {
@@ -236,63 +247,99 @@ class LucidRestful {
       })
   }
 
+  /*
+  TODO remover ao Migrar tecnologia
+  */
   buildInclude(query, request) {
     let only = request.only('include');
     if (only.include)
       only.include.split(',').forEach(i => {
         let [Model, w] = i.split(':')
-
-        query.with(w)
+        query.with(w.replace('->','.'))
       })
   }
 }
 
 class CascadeFill {
-  constructor(collectionClass, collectionName) {
-    ModelHooks[collectionName] = this;
+  constructor(modelClass) {
+    ModelHooks[modelClass.name] = this;
 
-    this.addHook(collectionClass)
+    this.addHook(modelClass)
   }
 
-  async addHook(model) {
+  static getModel(nameOrClass, props) {
+    let modelClass = null
+    if (typeof nameOrClass === 'string')
+      modelClass = use(`${(props||{}).modelfolder||'App/Models/'}${nameOrClass}`)
+    else
+      modelClass = nameOrClass
+
+    if (nameOrClass && modelClass && !ModelHooks.hasOwnProperty(modelClass.name)) {
+      new CascadeFill(modelClass)
+    }
+    return modelClass;
+  }
+
+  addHook(model) {
     /* remove to save cascade attributes */
     model.addHook('beforeSave', (modelInstance) => {
+
       if (!modelInstance.$hidden) modelInstance.$hidden = {}
       modelInstance.$hidden.$rest = {};
 
       (model.cascadeFillable||[]).forEach(fill => {
         modelInstance.$hidden.$rest[fill] = modelInstance.$attributes[fill]
         modelInstance[fill] = undefined
+        delete modelInstance.$attributes[fill];
       })
     })
 
     /* save cascade attributes */
     model.addHook('afterSave', async (modelInstance) => {
-      (model.cascadeFillable||[]).forEach(fill => {
+      await (model.cascadeFillable||[]).forEach(async fill => {
         const attributes = modelInstance.$hidden.$rest[fill];
         if (!attributes || !attributes.length) return;
-        const relationship = modelInstance.canais();
+
+        const relationship = modelInstance[fill]();
+        const model = CascadeFill.getModel(relationship.RelatedModel)
 
         if (relationship.constructor.name === "BelongsToMany")
-          this.fillBelongsToMany(relationship, attributes)
+          await this.fillBelongsToMany(relationship, attributes, model)
 
         if (relationship.constructor.name === "HasMany")
-          this.fillHasMany(relationship, attributes)
+          await this.fillHasMany(relationship, attributes, model)
       })
-
       delete modelInstance.$hidden.$rest
     })
   }
 
-  fillBelongsToMany(relationship, attributes) {
-    relationship.attach(attributes.map(x => x.id||x))
+  async fillBelongsToMany(relationship, attributes/*, model*/) {
+    await relationship.sync(attributes.map(x => x.id||x))
   }
 
-  async fillHasMany(relationship, attributes) {
+  async fillHasMany(relationship, attributes, model) {
+    await attributes.forEach(async attr => {
+      let key = attr[model.primaryKey]
 
+      if (model.fillable) {
+        let _att = {}
+        model.fillable.forEach(fill => {
+          if (attr[fill] !== undefined)
+            _att[fill] = attr[fill]
+        })
+        attr = _att
+      }
+
+      if (!key)
+        relationship.create(attr)
+      else {
+        let related = await model.findOrFail(key)
+        related.merge(attr)
+        await relationship.save(related)
+      }
+    })
   }
 }
-
 
 
 function paramsToQuery(key, value) {
