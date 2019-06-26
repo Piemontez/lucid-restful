@@ -1,6 +1,6 @@
 {
   "name": "lucid-restful",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Adonis Lucid Restful",
   "main": "index.js",
   "scripts": {
@@ -11,9 +11,9 @@
     "url": "git+https://github.com/Piemontez/lucid-restful.git"
   },
   "keywords": [
-    "adonis",
-    "lucid",
-    "restful"
+    "adonis", "lucid", "restful",
+    "adonis-framework", "rest",
+    "crud"
   ],
   "author": "Rafael A. Piemontez",
   "license": "MIT",

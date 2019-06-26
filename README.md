@@ -40,6 +40,16 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection     | PATCH  | Method Not Allowed          |
 | /:collection/:id | PATCH  | Undeveloped Method          |
 
+
+| Get examples              | Notes                            |
+| /post                     | List all posts                   |
+| /post/1                   | Retrieve post with id 1          |
+| /post?id>10&id<100        | List posts between id 11 and 100 |
+| /posts?with=comments      | List posts with comments         |
+| /posts/1?with=comments    | Retrieve post 1 with comments    |
+| /posts?order=-title       | List posts sorted by title desc  |
+| /posts?page=2&limit=100   | List from 101 to 200             |
+
 ## API
 
 ### Querying documents
@@ -105,6 +115,29 @@ URL: `https://localhost/restapi/count?age>=18`
 Result
 ```js
 { count: 2 }
+```
+
+## Custom filters
+
+This midlaware add **before paginete** suporte in all restful calls. 
+
+```js
+class Post extends Model {
+  static boot () {
+    super.boot()
+
+    this.addHook('beforePaginate', async (query, request) => {
+		let params = request.get()
+		
+		if (params.customfilter) {
+			query.where(..., ...)
+			
+			delete params.customfilter
+		}
+    })
+  }
+  ...
+}
 ```
 
 ## With suporte / Eager loading
@@ -233,7 +266,8 @@ Route.resource('/restapi/:collection/:id*', '_Custom_Controller_').middleware(['
 | Build Filters       | Finished         | 0.1.6     |
 | Sort                | Finished         | 0.1.7     |
 | Pager               | Finished         | 0.1.8     |
-| Cascade Save        | In Developed     | 0.1.15    |
+| Custom Filters      | Finished         | 0.1.9     |
+| Cascade Save        | Finished         | 0.1.15    |
 | Adonis Validator    | In Developed     | 0.2       |
-| Transaction suporte | Waiting          | 0.3       |
+| Transaction suporte | Waiting          | 1.0       |
 
