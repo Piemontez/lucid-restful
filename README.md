@@ -112,7 +112,7 @@ Result:
 
 ### Count example
 
-URL: `https://localhost/restapi/count?age>=18`
+URL: `https://localhost/restapi/users/count?age>=18`
 Result
 ```js
 { count: 2 }
