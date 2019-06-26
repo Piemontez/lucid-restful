@@ -42,6 +42,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 
 
 | Get examples              | Notes                            |
+| ------------------------- | -------------------------------- |
 | /post                     | List all posts                   |
 | /post/1                   | Retrieve post with id 1          |
 | /post?id>10&id<100        | List posts between id 11 and 100 |
