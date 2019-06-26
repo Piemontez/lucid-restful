@@ -4,8 +4,6 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const _ = require('lodash')
-const inflection = require('inflection');
-const ModelHooks = use('Lucid/ModelHooked')
 const Database = use('Database')
 
 class LucidRestfullException extends Error {
@@ -20,9 +18,10 @@ class LucidRestfullException extends Error {
 const except = ['with', 'include', 'page', 'limit', 'count', 'sort', 'order']
 
 class LucidRestful {
+
   async handle (ctx, next, properties) {
 
-    this.props = { /*modelfolder*/ };
+    this.props = { };
 
     /* parse properties */
     (properties||[]).forEach(prop => {
@@ -32,9 +31,6 @@ class LucidRestful {
 
     const { request, params } = ctx;
     const method = request.method();
-
-    this.parseParameters(request, params)
-    this.getColection(request, params)
 
     if (request.lucidMethod) {
       switch(request.lucidMethod) {
@@ -76,28 +72,7 @@ class LucidRestful {
       }
     }
 
-    next()
-  }
-
-  parseParameters(request, params) {
-    const { collection, id } = params
-    const reserved = ['count']
-
-    request.collectionName = inflection.camelize(collection)
-
-    if (Array.isArray(id)) {
-      if (reserved.includes(id[0]))
-        request.lucidMethod = id[0]
-      else
-        request.idMatch = id[0]
-    } else {
-      request.idMatch = id
-    }
-  }
-
-  getColection(request/*, params*/) {
-    request.collectionModel = CascadeFill.getModel(request.collectionName, this.props)
-
+    await next()
   }
 
   async findAll(request, params) {
@@ -146,7 +121,6 @@ class LucidRestful {
 
   async update(request, params) {
     const model = await request.collectionModel.findOrFail(request.idMatch)
-
     if (request.collectionModel.fillable)
       model.merge(request.only(
         request.collectionModel.fillable
@@ -158,7 +132,6 @@ class LucidRestful {
     const trx = await Database.beginTransaction()
       await model.save(trx)
     trx.commit()
-
 
     let query = request.collectionModel.query();
     this.buildQuery(query, request, params)
@@ -189,7 +162,8 @@ class LucidRestful {
     //let params = request.except(except);
     let params = _.omit(request.get(), except);
 
-    for (var key in params) {
+
+    for (let key in params) {
       const where =  paramsToQuery(key, params[key])
 
       if (where.key === 'q') {
@@ -220,15 +194,14 @@ class LucidRestful {
     let only = request.only(['order','sort']);
     let order = only.order || only.sort;
     if (order) {
-      let direction = 'asc';
-      if (order[0] === '-') {
-        order = order.substr(1);
-        direction = 'desc';
-      }
-        (order).split(',').forEach(w => {
+      (order).split(',').forEach(w => {
+          let direction = 'asc';
+          if (w[0] === '-') {
+            w = w.substr(1);
+            direction = 'desc';
+          }
           query.orderBy(w, direction)
         })
-
     }
   }
 
@@ -259,88 +232,6 @@ class LucidRestful {
       })
   }
 }
-
-class CascadeFill {
-  constructor(modelClass) {
-    ModelHooks[modelClass.name] = this;
-
-    this.addHook(modelClass)
-  }
-
-  static getModel(nameOrClass, props) {
-    let modelClass = null
-    if (typeof nameOrClass === 'string')
-      modelClass = use(`${(props||{}).modelfolder||'App/Models/'}${nameOrClass}`)
-    else
-      modelClass = nameOrClass
-
-    if (nameOrClass && modelClass && !ModelHooks.hasOwnProperty(modelClass.name)) {
-      new CascadeFill(modelClass)
-    }
-    return modelClass;
-  }
-
-  addHook(model) {
-    /* remove to save cascade attributes */
-    model.addHook('beforeSave', (modelInstance) => {
-
-      if (!modelInstance.$hidden) modelInstance.$hidden = {}
-      modelInstance.$hidden.$rest = {};
-
-      (model.cascadeFillable||[]).forEach(fill => {
-        modelInstance.$hidden.$rest[fill] = modelInstance.$attributes[fill]
-        modelInstance[fill] = undefined
-        delete modelInstance.$attributes[fill];
-      })
-    })
-
-    /* save cascade attributes */
-    model.addHook('afterSave', async (modelInstance) => {
-      await (model.cascadeFillable||[]).forEach(async fill => {
-        const attributes = modelInstance.$hidden.$rest[fill];
-        if (!attributes || !attributes.length) return;
-
-        const relationship = modelInstance[fill]();
-        const model = CascadeFill.getModel(relationship.RelatedModel)
-
-        if (relationship.constructor.name === "BelongsToMany")
-          await this.fillBelongsToMany(relationship, attributes, model)
-
-        if (relationship.constructor.name === "HasMany")
-          await this.fillHasMany(relationship, attributes, model)
-      })
-      delete modelInstance.$hidden.$rest
-    })
-  }
-
-  async fillBelongsToMany(relationship, attributes/*, model*/) {
-    await relationship.sync(attributes.map(x => x.id||x))
-  }
-
-  async fillHasMany(relationship, attributes, model) {
-    await attributes.forEach(async attr => {
-      let key = attr[model.primaryKey]
-
-      if (model.fillable) {
-        let _att = {}
-        model.fillable.forEach(fill => {
-          if (attr[fill] !== undefined)
-            _att[fill] = attr[fill]
-        })
-        attr = _att
-      }
-
-      if (!key)
-        relationship.create(attr)
-      else {
-        let related = await model.findOrFail(key)
-        related.merge(attr)
-        await relationship.save(related)
-      }
-    })
-  }
-}
-
 
 function paramsToQuery(key, value) {
   const join = (value == '') ? key : key.concat('=', value)
@@ -430,4 +321,3 @@ function typedValue(value) {
 let iso8601 = /^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?(T([01][0-9]|2[0-3]):[0-5]\d(:[0-5]\d(\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?$/
 
 module.exports = LucidRestful
-
