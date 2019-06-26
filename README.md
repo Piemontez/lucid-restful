@@ -215,6 +215,15 @@ Result:
 }]
 ```
 
+## Validator
+
+To validate the requisitions, add in the `app/Validators/` folder the validators with the same name as the templates.
+
+`app/Models/Post.js`
+
+`app/Validators/Post.js`
+
+
 ## Aggregate function suporte
 
 ```js
@@ -269,6 +278,6 @@ Route.resource('/restapi/:collection/:id*', '_Custom_Controller_').middleware(['
 | Pager               | Finished         | 0.1.8     |
 | Custom Filters      | Finished         | 0.1.9     |
 | Cascade Save        | Finished         | 0.1.15    |
-| Adonis Validator    | In Developed     | 0.2       |
+| Adonis Validator    | Finished         | 0.2       |
 | Transaction suporte | Waiting          | 1.0       |
 
