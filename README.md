@@ -6,9 +6,7 @@
 1. Install required packages
 ```bash
 yarn add lucid-restful
-
 or
-
 npm install lucid-restful
 ```
 
