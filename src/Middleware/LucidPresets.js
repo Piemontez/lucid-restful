@@ -3,6 +3,14 @@
 const inflection = require('inflection');
 const ModelHooks = use('Lucid/ModelHooked')
 
+class LucidPresetsException extends Error {
+  constructor(name, message) {
+    super()
+    this.name = name
+    this.message = message
+  }
+}
+
 class LucidPresets {
   async handle (ctx, next, properties) {
 
@@ -33,6 +41,9 @@ class LucidPresets {
 
   getColection(request/*, params*/) {
     request.collectionModel = CascadeFill.getModel(request.collectionName, this.props)
+
+    if (!request.collectionModel)
+      throw new LucidRestfullException('COLLECTION_NOT_FOUND', `Collection "${request.collectionName}" not found`)
   }
 
   getValidator(request/*, params*/) {
@@ -131,3 +142,4 @@ class CascadeFill {
 }
 
 module.exports = LucidPresets
+

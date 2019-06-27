@@ -5,7 +5,11 @@
 
 1. Install required packages
 ```bash
-adonis install lucid-restful --yarn
+yarn add lucid-restful
+
+or
+
+npm install lucid-restful
 ```
 
 1. Edit `/start/app.js`
