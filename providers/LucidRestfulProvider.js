@@ -40,15 +40,18 @@ class LucidRestfulProvider extends ServiceProvider {
 
           //Route.resource(`${prefix}/:collection/:id*`, 'Lucid/Controllers/RestfulController')
           //  .middleware([`lucid-restful:${configs||''}`])
-          return Route.resource(`${prefix}/:collection/:id*`, 'RestfulController')
+          const route = Route.resource(`${prefix}/:collection/:id*`, 'RestfulController')
             .middleware(['lucid-presets'])
-            //TOdo verificar se existe a função validador, usuário pode não estar utilizado lucid-validator
-            .validator(new Map([
+
+          if (route.validator)
+            route.validator(new Map([
                 [['store'], ['LucidModelValidator']],
                 [['update'], ['LucidModelValidator']],
               ]))
-            .middleware([`lucid-restful:${configs||''}`])
 
+          route.middleware([`lucid-restful:${configs||''}`])
+
+          return route
         //}).prefix(prefix)
       }
     }
