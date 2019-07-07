@@ -31,7 +31,7 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection     | GET    | Search the collection (Filters: under development) |
 | /:collection     | POST   | Create a single document    |
 | /:collection     | PUT    | Method Not Allowed          |
-| /:collection     | DELETE | Remove all documents        |
+| /:collection     | DELETE | Method Not Allowed          |
 | /:collection/:id | GET    | Retrieve a single document  |
 | /:collection/:id | POST   | Method Not Allowed          |
 | /:collection/:id | PUT    | Update a document           |
@@ -80,6 +80,28 @@ URL `https://localhost/restapi/users?order=name&page=1&limit=10`
 Descending
 
 URL `https://localhost/restapi/users?order=-name`
+
+### q Search
+
+Use the `q` parameter to perform a substring search specified in the 'qSearchFields' attribute of the model.
+
+URL `https://localhost/restapi/users?q=John%`
+
+```js
+[
+  { id: '1', name: 'John', age: 21 }
+  { id: '1', name: 'Edward', lastName: 'Johnathan', age: 21 }
+]
+```
+
+
+```js
+class User extends Model {
+...
+}
+
+User.qSearchFields = ['name', 'lastName']
+```
 
 ### POST example
 Documents are saved using the Lucid ORM save function.
@@ -220,6 +242,7 @@ Result:
 ## Validator
 
 To validate the requisitions, add in the `app/Validators/` folder the validators with the same name as the templates.
+**Requires @adonisjs/validator to enable**.
 
 `app/Models/Post.js`
 

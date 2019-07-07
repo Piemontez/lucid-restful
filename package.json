@@ -1,6 +1,6 @@
 {
   "name": "lucid-restful",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Adonis Lucid Restful",
   "main": "index.js",
   "scripts": {
