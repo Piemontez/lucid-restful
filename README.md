@@ -290,19 +290,3 @@ if you need to customize the data output.
 ```js
 Route.resource('/restapi/:collection/:id*', '_Custom_Controller_').middleware(['lucid-restful'])
 ```
-
-## Todo
-
-| Item                | Status           | Version   |
-| ------------------- | ---------------- | --------- |
-| Fillable values     | Finished         | 0.1.2     |
-| Populate / With     | Finished         | 0.1.4     |
-| Change to Provider  | Finished         | 0.1.5     |
-| Build Filters       | Finished         | 0.1.6     |
-| Sort                | Finished         | 0.1.7     |
-| Pager               | Finished         | 0.1.8     |
-| Custom Filters      | Finished         | 0.1.9     |
-| Cascade Save        | Finished         | 0.1.15    |
-| Adonis Validator    | Finished         | 0.2       |
-| Transaction suporte | Waiting          | 1.0       |
-

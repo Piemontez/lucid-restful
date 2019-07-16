@@ -4,10 +4,14 @@ const { formatters } = use('Validator')
 
 class LucidModelValidator {
   get rules () {
-    return (this.ctx.request.collectionValidator||{}).rules;
+    let val = this.ctx.request.collectionValidator||{};
+    val.ctx = this.ctx;
+    return val.rules;
   }
   get messages () {
-    return (this.ctx.request.collectionValidator||{}).messages;
+    let val = this.ctx.request.collectionValidator||{};
+    val.ctx = this.ctx;
+    return val.messages;
   }
 
   /*get data () {
@@ -34,3 +38,4 @@ class LucidModelValidator {
 }
 
 module.exports = LucidModelValidator
+

@@ -1,7 +1,7 @@
 {
   "name": "lucid-restful",
-  "version": "0.3.0",
-  "description": "Adonis Lucid Restful",
+  "version": "1.0.1",
+  "description": "An Restful API addon for AdonisJs 4 + Lucid ORM (PostgreSQL, MySQL, SQLite3, MariaDB, Oracle, MSSQL)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,9 +11,10 @@
     "url": "git+https://github.com/Piemontez/lucid-restful.git"
   },
   "keywords": [
-    "adonis", "lucid", "restful",
-    "adonis-framework", "rest",
-    "crud"
+    "adonis", "lucid", 
+    "restful", "rest", "restify",
+    "crud", "filter", "query"
+    "adonis-framework",
   ],
   "author": "Rafael A. Piemontez",
   "license": "MIT",

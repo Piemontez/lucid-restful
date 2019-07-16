@@ -43,7 +43,7 @@ class LucidPresets {
     request.collectionModel = CascadeFill.getModel(request.collectionName, this.props)
 
     if (!request.collectionModel)
-      throw new LucidRestfullException('COLLECTION_NOT_FOUND', `Collection "${request.collectionName}" not found`)
+      throw new LucidPresetsException('COLLECTION_NOT_FOUND', `Collection "${request.collectionName}" not found`)
   }
 
   getValidator(request/*, params*/) {
@@ -53,7 +53,9 @@ class LucidPresets {
       try {
         ModelHooks[valname] = new (use(`App/Validators/${request.collectionName}`))
       } catch(err) {
-        ModelHooks[valname] = null;
+        if (err.code !== 'MODULE_NOT_FOUND')
+          throw err
+        ModelHooks[valname] = null
       }
 
     request.collectionValidator = ModelHooks[valname];
@@ -83,20 +85,20 @@ class CascadeFill {
   addHook(model) {
     /* remove to save cascade attributes */
     model.addHook('beforeSave', (modelInstance) => {
-
       if (!modelInstance.$hidden) modelInstance.$hidden = {}
       modelInstance.$hidden.$rest = {};
 
-      (model.cascadeFillable||[]).forEach(fill => {
+      for (const fill of (model.cascadeFillable||[])) {
         modelInstance.$hidden.$rest[fill] = modelInstance.$attributes[fill]
         modelInstance[fill] = undefined
         delete modelInstance.$attributes[fill];
-      })
+      }
     })
 
     /* save cascade attributes */
     model.addHook('afterSave', async (modelInstance) => {
-      await (model.cascadeFillable||[]).forEach(async fill => {
+      for (const fill of (model.cascadeFillable||[])) {
+        const trx = modelInstance.$hidden.trx||null;
         const attributes = modelInstance.$hidden.$rest[fill];
         if (!attributes || !attributes.length) return;
 
@@ -104,22 +106,22 @@ class CascadeFill {
         const model = CascadeFill.getModel(relationship.RelatedModel)
 
         if (relationship.constructor.name === "BelongsToMany")
-          await this.fillBelongsToMany(relationship, attributes, model)
+          await this.fillBelongsToMany(relationship, attributes, model, trx)
 
         if (relationship.constructor.name === "HasMany")
-          await this.fillHasMany(relationship, attributes, model)
-      })
+          await this.fillHasMany(relationship, attributes, model, trx)
+      }
       delete modelInstance.$hidden.$rest
     })
   }
 
-  async fillBelongsToMany(relationship, attributes/*, model*/) {
-    await relationship.sync(attributes.map(x => x.id||x))
+  async fillBelongsToMany(relationship, attributes, model, trx) {
+    await relationship.sync(attributes.map(x => x.id||x), trx)
   }
 
-  async fillHasMany(relationship, attributes, model) {
-    await attributes.forEach(async attr => {
-      let key = attr[model.primaryKey]
+  async fillHasMany(relationship, attributes, model, trx) {
+    for (let attr of attributes) {
+      let key  = attr[model.primaryKey]
 
       if (model.fillable) {
         let _att = {}
@@ -130,14 +132,14 @@ class CascadeFill {
         attr = _att
       }
 
-      if (!key)
-        relationship.create(attr)
-      else {
+      if (!key) {
+        await relationship.create(attr, trx)
+      } else {
         let related = await model.findOrFail(key)
         related.merge(attr)
-        await relationship.save(related)
+        await relationship.save(related, trx)
       }
-    })
+    }
   }
 }
 
