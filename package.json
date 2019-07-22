@@ -1,6 +1,6 @@
 {
   "name": "lucid-restful",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "An Restful API addon for AdonisJs 4 + Lucid ORM",
   "main": "index.js",
   "scripts": {
