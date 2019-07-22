@@ -38,4 +38,3 @@ class LucidModelValidator {
 }
 
 module.exports = LucidModelValidator
-

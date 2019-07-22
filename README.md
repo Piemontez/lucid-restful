@@ -5,8 +5,10 @@
 
 1. Install required packages
 ```bash
+adonis install @adonisjs/fold --yarn
 yarn add lucid-restful
 or
+adonis install @adonisjs/fold
 npm install lucid-restful
 ```
 

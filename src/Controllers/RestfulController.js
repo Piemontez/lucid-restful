@@ -26,4 +26,3 @@ class RestfulController {
 }
 
 module.exports = RestfulController
-

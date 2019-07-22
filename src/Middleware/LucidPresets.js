@@ -153,4 +153,3 @@ class CascadeFill {
 }
 
 module.exports = LucidPresets
-
