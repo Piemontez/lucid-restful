@@ -14,6 +14,14 @@ class LucidPresetsException extends Error {
 class LucidPresets {
   async handle (ctx, next, properties) {
 
+    this.props = { };
+
+    /* parse properties */
+    (properties||[]).forEach(prop => {
+      const [ l, r ] = prop.split('=');
+      this.props[l] = r||l;
+    })
+
     const { request, params } = ctx;
 
     this.parseParameters(request, params)
@@ -100,7 +108,8 @@ class CascadeFill {
       for (const fill of (model.cascadeFillable||[])) {
         const trx = modelInstance.$hidden.trx||null;
         const attributes = modelInstance.$hidden.$rest[fill];
-        if (!attributes || !attributes.length) return;
+
+        if (!attributes && !Array.isArray(attributes)) return;
 
         const relationship = modelInstance[fill]();
         const model = CascadeFill.getModel(relationship.RelatedModel)
@@ -116,7 +125,7 @@ class CascadeFill {
   }
 
   async fillBelongsToMany(relationship, attributes, model, trx) {
-    await relationship.sync(attributes.map(x => x.id||x), trx)
+    await relationship.sync(attributes.map(x => x.id||x), null, trx)
   }
 
   async fillHasMany(relationship, attributes, model, trx) {

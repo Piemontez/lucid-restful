@@ -38,10 +38,8 @@ class LucidRestfulProvider extends ServiceProvider {
       Route.restful = (prefix, configs) => {
         //Route.group(() => {
 
-          //Route.resource(`${prefix}/:collection/:id*`, 'Lucid/Controllers/RestfulController')
-          //  .middleware([`lucid-restful:${configs||''}`])
           const route = Route.resource(`${prefix}/:collection/:id*`, 'RestfulController')
-            .middleware(['lucid-presets'])
+            .middleware([`lucid-presets:${configs||''}`])
 
           if (route.validator)
             route.validator(new Map([

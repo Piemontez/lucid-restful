@@ -107,7 +107,7 @@ class LucidRestful {
       model.$hidden.trx = trx
       await model.save(trx)
       request.queryResult = model.toJSON()
-    trx.commit()
+    await trx.commit()
   }
 
   async delete(request/*, params*/) {
@@ -116,7 +116,7 @@ class LucidRestful {
     const trx = await Database.beginTransaction()
       await model.delete(trx)
       request.queryResult = model.toJSON()
-    trx.commit()
+    await trx.commit()
   }
 
   async update(request, params) {
@@ -129,9 +129,12 @@ class LucidRestful {
     else
       model.merge(request.body)
 
+    if (!model.$hidden) model.$hidden = {}
+
     const trx = await Database.beginTransaction()
+      model.$hidden.trx = trx
       await model.save(trx)
-    trx.commit()
+    await trx.commit()
 
     let query = request.collectionModel.query();
     this.buildQuery(query, request, params)
@@ -145,7 +148,7 @@ class LucidRestful {
 
     this.buildQuery(query, request, params)
 
-    request.queryResult = await query.count().first()
+    request.queryResult = await query.count('* as count').first()
   }
 
   buildQuery(query, request) {
@@ -170,7 +173,7 @@ class LucidRestful {
         query.where((builder) => {
           if (query.Model.qSearchFields)
             query.Model.qSearchFields.forEach(q => {
-              builder.orWhere(q, 'ilike', where.value.toLocaleLowerCase())
+              builder.orWhere(q, 'like', where.value.toLocaleLowerCase())
             })
         })
       } else
