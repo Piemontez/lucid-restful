@@ -45,15 +45,17 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection/:id | PATCH  | Undeveloped Method          |
 
 
-| Get examples              | Notes                            |
-| ------------------------- | -------------------------------- |
-| /post                     | List all posts                   |
-| /post/1                   | Retrieve post with id 1          |
-| /post?id>10&id<100        | List posts id between 11 and 100 |
-| /posts?with=comments      | List posts with comments         |
-| /posts/1?with=comments    | Retrieve post 1 with comments    |
-| /posts?order=-title       | List posts sorted by title desc  |
-| /posts?page=2&limit=100   | List from 101 to 200             |
+| Get examples              | Notes                                |
+| ------------------------- | ------------------------------------ |
+| /post                     | List all posts                       |
+| /post/1                   | Retrieve post with id 1              |
+| /post?id>10&id<100        | List posts id **between 11 and 100** |
+| /posts?with=comments      | List posts **with comments**         |
+| /posts/1?with=comments    | Retrieve post 1 with comments        |
+| /posts?order=-title       | List posts **sorted by** title desc  |
+| /posts?page=2&limit=100   | List **from 101 to 200**             |
+| /post?!title              | List posts if **title IS NULL**      |
+| /post?title               | List posts if **title IS NOT NULL**  |
 
 ## API
 
