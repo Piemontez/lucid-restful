@@ -26,7 +26,7 @@ class LucidRestful {
       this.props[l] = r||l;
     })
 
-    const { request, params } = ctx;
+    const { request, auth, params } = ctx;
     const method = request.method();
 
     if (request.lucidMethod) {
@@ -44,10 +44,10 @@ class LucidRestful {
           await this.retriveByPk(request, params)
           break;
         case 'put':
-          await this.update(request, params)
+          await this.update(request, params, auth)
           break;
         case 'delete':
-          await this.delete(request, params)
+          await this.delete(request, params, auth)
           break;
         default:
           throw new LucidRestfullException('METHOD_NOT_ALLOWED', 'Method Not Allowed')
@@ -58,7 +58,7 @@ class LucidRestful {
           await this.findAll(request, params)
           break;
         case 'post':
-          await this.new(request, params)
+          await this.new(request, params, auth)
           break;
         //case 'delete':
         //  this.bulkDelete();
@@ -90,7 +90,7 @@ class LucidRestful {
     request.queryResult  = await query.first()
   }
 
-  async new(request/*, params*/) {
+  async new(request, params, auth) {
     const model = new request.collectionModel;
 
     if (request.collectionModel.fillable)
@@ -101,25 +101,28 @@ class LucidRestful {
     else
       model.fill(request.body)
 
+    //model.createdBy = (auth.user||{}).id
+    //model.updatedBy = (auth.user||{}).id
+
     if (!model.$hidden) model.$hidden = {}
 
-    const trx = await Database.beginTransaction()
+    await Database.transaction(async (trx) => {
       model.$hidden.trx = trx
       await model.save(trx)
-      request.queryResult = model.toJSON()
-    await trx.commit()
+    })
+    request.queryResult = model.toJSON()
   }
 
   async delete(request/*, params*/) {
     const model = await request.collectionModel.findOrFail(request.idMatch)
 
-    const trx = await Database.beginTransaction()
+    await Database.transaction(async (trx) => {
       await model.delete(trx)
-      request.queryResult = model.toJSON()
-    await trx.commit()
+    })
+    request.queryResult = model.toJSON()
   }
 
-  async update(request, params) {
+  async update(request, params, auth) {
     const model = await request.collectionModel.findOrFail(request.idMatch)
     if (request.collectionModel.fillable)
       model.merge(request.only(
@@ -129,12 +132,14 @@ class LucidRestful {
     else
       model.merge(request.body)
 
+    //model.updatedBy = (auth.user||{}).id
+
     if (!model.$hidden) model.$hidden = {}
 
-    const trx = await Database.beginTransaction()
+    await Database.transaction(async (trx) => {
       model.$hidden.trx = trx
       await model.save(trx)
-    await trx.commit()
+    })
 
     let query = request.collectionModel.query();
     this.buildQuery(query, request, params)

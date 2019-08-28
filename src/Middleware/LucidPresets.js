@@ -109,7 +109,7 @@ class CascadeFill {
         const trx = modelInstance.$hidden.trx||null;
         const attributes = modelInstance.$hidden.$rest[fill];
 
-        if (!attributes && !Array.isArray(attributes)) return;
+        if (!attributes && !Array.isArray(attributes)) continue;
 
         const relationship = modelInstance[fill]();
         const model = CascadeFill.getModel(relationship.RelatedModel)

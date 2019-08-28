@@ -10,7 +10,7 @@ class LucidRestfulProvider extends ServiceProvider {
         })
 
         this.app.bind('Lucid/Controllers/RestfulController', app => {
-          //const RestfulController = require('../src/Controllers/RestfulController')
+          const RestfulController = require('../src/Controllers/RestfulController')
           //const RestfulController = require('./src/Controllers/RestfulController')
           return RestfulController
         })
@@ -63,4 +63,3 @@ class LucidRestfulProvider extends ServiceProvider {
 }
 
 module.exports = LucidRestfulProvider
-
