@@ -16,30 +16,30 @@ const except = ['with', 'include', 'page', 'limit', 'count', 'sort', 'order']
 
 class LucidRestful {
 
-  async handle (ctx, next, properties) {
+  async handle(ctx, next, properties) {
 
-    this.props = { };
+    this.props = {};
 
     /* parse properties */
-    (properties||[]).forEach(prop => {
-      const [ l, r ] = prop.split('=');
-      this.props[l] = r||l;
+    (properties || []).forEach(prop => {
+      const [l, r] = prop.split('=');
+      this.props[l] = r || l;
     })
 
     const { request, auth, params } = ctx;
     const method = request.method();
 
     if (request.lucidMethod) {
-      switch(request.lucidMethod) {
+      switch (request.lucidMethod) {
         case 'count':
           await this.count(request, params)
-        break;
+          break;
         default:
           throw new LucidRestfullException('METHOD_NOT_ALLOWED', 'Method Not Allowed')
       }
     }
     else if (request.idMatch) {
-      switch(method.toLocaleLowerCase()) {
+      switch (method.toLocaleLowerCase()) {
         case 'get':
           await this.retriveByPk(request, params)
           break;
@@ -53,7 +53,7 @@ class LucidRestful {
           throw new LucidRestfullException('METHOD_NOT_ALLOWED', 'Method Not Allowed')
       }
     } else {
-      switch(method.toLocaleLowerCase()) {
+      switch (method.toLocaleLowerCase()) {
         case 'get':
           await this.findAll(request, params)
           break;
@@ -87,7 +87,7 @@ class LucidRestful {
 
     query.where(request.collectionModel.primaryKey, request.idMatch)
 
-    request.queryResult  = await query.first()
+    request.queryResult = await query.first()
   }
 
   async new(request, params, auth) {
@@ -145,7 +145,7 @@ class LucidRestful {
     this.buildQuery(query, request, params)
     query.where(request.collectionModel.primaryKey, request.idMatch)
 
-    request.queryResult  = await query.first()
+    request.queryResult = await query.first()
   }
 
   async count(request, params) {
@@ -165,24 +165,24 @@ class LucidRestful {
   }
 
   buildFilters(query, request) {
-    query.Model.$hooks.before.exec('paginate', query, request)
+    if (query.Model)
+      query.Model.$hooks.before.exec('paginate', query, request)
 
     //let params = request.except(except);
     let params = _.omit(request.get(), except);
 
-
     for (let key in params) {
-      const where =  paramsToQuery(key, params[key])
+      const where = paramsToQuery(key, params[key])
 
       if (where.key === 'q') {
         query.where((builder) => {
           if (query.Model.qSearchFields)
             query.Model.qSearchFields.forEach(q => {
-              builder.orWhere(q, 'like', where.value.toLocaleLowerCase())
+              builder.orWhere(q, 'like', ('' + where.value).toLocaleLowerCase())
             })
         })
       } else
-        switch(where.method) {
+        switch (where.method) {
           case 'where':
             query.where(where.key, where.op, where.value)
             break;
@@ -204,24 +204,24 @@ class LucidRestful {
   }
 
   buildOrder(query, request) {
-    let only = request.only(['order','sort']);
+    let only = request.only(['order', 'sort']);
     let order = only.order || only.sort;
     if (order) {
       (order).split(',').forEach(w => {
-          let direction = 'asc';
-          if (w[0] === '-') {
-            w = w.substr(1);
-            direction = 'desc';
-          }
-          query.orderBy(w, direction)
-        })
+        let direction = 'asc';
+        if (w[0] === '-') {
+          w = w.substr(1);
+          direction = 'desc';
+        }
+        query.orderBy(w, direction)
+      })
     }
   }
 
   buildPager(query, request) {
-    let only = request.only(['page','count', 'limit'])
+    let only = request.only(['page', 'count', 'limit'])
     if (only.page)
-      query.forPage(parseInt(only.page, 10)||1, parseInt(only.count||only.limit, 10)||20)
+      query.forPage(parseInt(only.page, 10) || 1, parseInt(only.count || only.limit, 10) || 20)
   }
 
 
@@ -241,7 +241,7 @@ class LucidRestful {
     if (only.include)
       only.include.split(',').forEach(i => {
         let [Model, w] = i.split(':')
-        query.with(w.replace('->','.'))
+        query.with(w.replace('->', '.'))
       })
   }
 }
@@ -258,35 +258,35 @@ function paramsToQuery(key, value) {
   if (!op) {
     if (key[0] != '!') method = 'whereNotNull'
     else {
-        key = key.substr(1)
-        method = 'whereNull'
-    }
-  } else if (op == '=' && parts[3] == '!') {
+      key = key.substr(1)
       method = 'whereNull'
-  } else if (op == '=' || op == '!=') {
-      if ( op == '=' && parts[3][0] == '!' ) op = '<>'
-      var array = typedValues(parts[3]);
-      if (array.length > 1) {
-          value = {}
-          method = (op == '=') ? 'whereIn' : 'whereNotIn'
-          value = array
-      } else if (op == '!=') {
-        op = '<>'
-      } else if (array[0][0] == '!') {
-        op = '<>'
-        value = array[0].substr(1)
-      } else {
-        value = array[0]
-      }
-  } else if (op[0] == ':' && op[op.length - 1] == '=') {
-      op = op.substr(1, op.length - 2)
-      var array = []
-      parts[3].split(',').forEach(function(value) {
-          array.push(typedValue(value))
-      })
-      value = array.length == 1 ? array[0] : array
+    }
+  } else if (op === '=' && parts[3] === '!') {
+    method = 'whereNull'
+  } else if (op === '=' || op === '!=') {
+    if (op === '=' && parts[3][0] === '!') op = '<>'
+    var array = typedValues(parts[3]);
+    if (array.length > 1) {
+      value = {}
+      method = (op === '=') ? 'whereIn' : 'whereNotIn'
+      value = array
+    } else if (op === '!=') {
+      op = '<>'
+    } else if (array[0][0] === '!') {
+      op = '<>'
+      value = array[0].substr(1)
+    } else {
+      value = array[0]
+    }
+  } else if (op[0] === ':' && op[op.length - 1] === '=') {
+    op = op.substr(1, op.length - 2)
+    var array = []
+    parts[3].split(',').forEach(function (value) {
+      array.push(typedValue(value))
+    })
+    value = array.length === 1 ? array[0] : array
   } else {
-      value = typedValue(parts[3])
+    value = typedValue(parts[3])
   }
 
   return {
@@ -301,15 +301,15 @@ function typedValues(svalue) {
   var commaSplit = /("[^"]*")|('[^']*')|([^,]+)/g
   var values = []
   svalue
-      .match(commaSplit)
-      .forEach(function(value) {
-          values.push(typedValue(value))
-      })
+    .match(commaSplit)
+    .forEach(function (value) {
+      values.push(typedValue(value))
+    })
   return values;
 }
 
 function typedValue(value) {
-  if (value[0] == '!') value = value.substr(1)
+  if (value[0] === '!') value = value.substr(1)
   var regex = value.match(/^\/(.*)\/(i?)$/);
   var quotedString = value.match(/(["'])(?:\\\1|.)*?\1/);
 

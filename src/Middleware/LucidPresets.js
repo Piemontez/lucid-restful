@@ -112,41 +112,71 @@ class CascadeFill {
         if (!attributes && !Array.isArray(attributes)) continue;
 
         const relationship = modelInstance[fill]();
-        const model = CascadeFill.getModel(relationship.RelatedModel)
+        const relatedModel = CascadeFill.getModel(relationship.RelatedModel);
 
         if (relationship.constructor.name === "BelongsToMany")
-          await this.fillBelongsToMany(relationship, attributes, model, trx)
+          await this.fillBelongsToMany(relationship, attributes, relatedModel, modelInstance[model.primaryKey], trx);
 
         if (relationship.constructor.name === "HasMany")
-          await this.fillHasMany(relationship, attributes, model, trx)
+          await this.fillHasMany(relationship, attributes, relatedModel, modelInstance[model.primaryKey], trx);
       }
       delete modelInstance.$hidden.$rest
     })
   }
 
-  async fillBelongsToMany(relationship, attributes, model, trx) {
+  async fillBelongsToMany(relationship, attributes, model, parentId, trx) {
     await relationship.sync(attributes.map(x => x.id||x), null, trx)
   }
 
-  async fillHasMany(relationship, attributes, model, trx) {
+  async fillHasMany(relationship, attributes, model, parentId, trx) {
     for (let attr of attributes) {
-      let key  = attr[model.primaryKey]
+      const hasComposite = Array.isArray(model.compositeKey) && model.compositeKey.length > 0
+      const key = attr[model.primaryKey]
 
       if (model.fillable) {
         let _att = {}
+
+        if (hasComposite)
+          for (const key of model.compositeKey) {
+            _att[key] = attr[key]
+          }
+
         model.fillable.forEach(fill => {
           if (attr[fill] !== undefined)
             _att[fill] = attr[fill]
         })
         attr = _att
       }
+      if (hasComposite) {
+        const findQuery = model.query(trx)
+        const updateQuery = model.query(trx)
 
-      if (!key) {
-        await relationship.create(attr, trx)
+        for (const key of model.compositeKey) {
+          if (attr[key] === undefined || attr[key] === null) {
+            if (key === relationship.foreignKey && parentId)
+              attr[key] = parentId;
+            else
+              throw new LucidPresetsException('EMPTY_COMPOSITE_KEY', `Collection "${request.collectionName}" keys required`)
+          }
+
+          findQuery.where(key, attr[key])
+          updateQuery.where(key, attr[key])
+        }
+
+        const related = await findQuery.first()
+
+        if (related)
+          await updateQuery.update(attr)
+        else
+          await relationship.create(attr, trx)
       } else {
-        let related = await model.findOrFail(key)
-        related.merge(attr)
-        await relationship.save(related, trx)
+        if (!key) {
+          await relationship.create(attr, trx)
+        } else {
+          let related = await model.findOrFail(key)
+          related.merge(attr)
+          await relationship.save(related, trx)
+        }
       }
     }
   }
