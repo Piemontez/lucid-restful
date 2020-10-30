@@ -224,13 +224,27 @@ class LucidRestful {
       query.forPage(parseInt(only.page, 10) || 1, parseInt(only.count || only.limit, 10) || 20)
   }
 
-
   buildWith(query, request) {
     let only = request.only('with');
-    if (only.with)
-      only.with.split(',').forEach(w => {
-        query.with(w)
-      })
+    if (only.with) {
+      only.with
+        //match:  text(text,text,...)
+        .match(/[\w\.]+(\([\w,]*\))?/gi)
+        .forEach(w => {
+          let selects = w.match(/\(([\w,]*)\)/g);
+          if (selects && selects.length > 0) {
+            const relation = w.replace(selects[0], '');
+            selects = selects[0].replace(/[\(\)]/g, '').split(',');
+            query.with(relation, (builder) => {
+              for (const select of selects) {
+                builder.select(select);
+              }
+            });
+          } else {
+            query.with(w);
+          }
+        })
+    }
   }
 
   /*

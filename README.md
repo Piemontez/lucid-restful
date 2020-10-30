@@ -44,18 +44,19 @@ The middleware is schema-agnostic, allowing any json document to be persisted an
 | /:collection     | PATCH  | Method Not Allowed          |
 | /:collection/:id | PATCH  | Undeveloped Method          |
 
-
-| Get examples              | Notes                                |
-| ------------------------- | ------------------------------------ |
-| /post                     | List all posts                       |
-| /post/1                   | Retrieve post with id 1              |
-| /post?id>10&id<100        | List posts id **between 11 and 100** |
-| /posts?with=comments      | List posts **with comments**         |
-| /posts/1?with=comments    | Retrieve post 1 with comments        |
-| /posts?order=-title       | List posts **sorted by** title desc  |
-| /posts?page=2&limit=100   | List **from 101 to 200**             |
-| /post?!title              | List posts if **title IS NULL**      |
-| /post?title               | List posts if **title IS NOT NULL**  |
+     
+| Get examples                       | Notes                                                 |
+| ---------------------------------- | ----------------------------------------------------- |
+| /post                              | List all posts                                        |
+| /post/1                            | Retrieve post with id 1                               |
+| /post?id>10&id<100                 | List posts id **between 11 and 100**                  |
+| /posts?with=comments               | List posts **with comments**                          |
+| /posts?with=comments(post_id,body) | List posts **with comments** and **selected columns** |
+| /posts/1?with=comments             | Retrieve post 1 with comments                         |
+| /posts?order=-title                | List posts **sorted by** title desc                   |
+| /posts?page=2&limit=100            | List **from 101 to 200**                              |
+| /post?!title                       | List posts if **title IS NULL**                       |
+| /post?title                        | List posts if **title IS NOT NULL**                   |
 
 ## API
 
@@ -183,7 +184,8 @@ Result:
 	post: {
 		id: 1,
 		title: 'Lipsum',
-		body: 'It`s awesome'
+		body: 'It`s awesome',
+		...
 	} 
 }]
 ```
@@ -199,9 +201,30 @@ Result:
 		id: 1,
 		body: 'Lorem ipsum',
 		post_id: 1,
+		...
 	}]
 }]
 ```
+
+### Select With columns 
+
+if you need to select some columns in the related table. Just indicate the columns in parentheses as below:
+
+URL: `https://localhost/restapi/post?with=comments(post_id,body)`
+Result:
+```js
+[{
+	id: 1,
+	title: 'Lipsum',
+	body: 'It`s awesome',
+	comments: [{
+		post_id: 1,
+		body: 'Lorem ipsum',
+	}]
+}]
+```
+
+**Note:** It is necessary to inform the join columns.
 
 ## Fillable Properties
 
